@@ -464,6 +464,44 @@
                 min-width: 100%;
             }
         }
+        
+        /* 自定义弹窗样式 */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        .custom-alert p {
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+        
+        .custom-alert button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
     </style>
 </head>
 <body>
@@ -1086,6 +1124,22 @@ cms.qdwght.com</textarea>
                 return vodKeyInput.value.trim() && vodNameInput.value.trim() && vodApiInput.value.trim();
             }
 
+            // 自定义警告弹窗
+            function showCustomAlert(message) {
+                const overlay = document.createElement('div');
+                overlay.className = 'overlay';
+                
+                const alertBox = document.createElement('div');
+                alertBox.className = 'custom-alert';
+                alertBox.innerHTML = `
+                    <p>${message}</p>
+                    <button onclick="this.parentElement.parentElement.remove()">确定</button>
+                `;
+                
+                overlay.appendChild(alertBox);
+                document.body.appendChild(overlay);
+            }
+
             // 标签页切换
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1108,7 +1162,7 @@ cms.qdwght.com</textarea>
                 const ext = vodExtInput.value.trim();
                 
                 if (!key || !name || !api) {
-                    alert('请填写完整的点播源信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1152,7 +1206,7 @@ cms.qdwght.com</textarea>
                 const ext = vodExtInput.value.trim();
                 
                 if (!key || !name || !api) {
-                    alert('请填写完整的点播源信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1229,7 +1283,7 @@ cms.qdwght.com</textarea>
                 const urls = Array.from(urlInputs).map(input => input.value.trim()).filter(url => url);
                 
                 if (!group || !name || urls.length === 0) {
-                    alert('请填写完整的直播频道信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1264,7 +1318,7 @@ cms.qdwght.com</textarea>
                 const urls = Array.from(urlInputs).map(input => input.value.trim()).filter(url => url);
                 
                 if (!group || !name || urls.length === 0) {
-                    alert('请填写完整的直播频道信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1346,7 +1400,7 @@ cms.qdwght.com</textarea>
                 const ext = parseExtInput.value.trim();
                 
                 if (!name || !url) {
-                    alert('请填写完整的解析地址信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1378,7 +1432,7 @@ cms.qdwght.com</textarea>
                 const ext = parseExtInput.value.trim();
                 
                 if (!name || !url) {
-                    alert('请填写完整的解析地址信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1442,7 +1496,7 @@ cms.qdwght.com</textarea>
                 const value = ijkValueInput.value.trim();
                 
                 if (!name || !value) {
-                    alert('请填写完整的解码选项信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1450,7 +1504,7 @@ cms.qdwght.com</textarea>
                 const ijkGroup = config.ijk.find(g => g.group === (group === 'soft' ? '软解码' : '硬解码'));
                 
                 if (!ijkGroup) {
-                    alert('找不到对应的解码组!');
+                    showCustomAlert('找不到对应的解码组!');
                     return;
                 }
                 
@@ -1482,7 +1536,7 @@ cms.qdwght.com</textarea>
                 const value = ijkValueInput.value.trim();
                 
                 if (!name || !value) {
-                    alert('请填写完整的解码选项信息!');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -1490,7 +1544,7 @@ cms.qdwght.com</textarea>
                 const ijkGroup = config.ijk.find(g => g.group === (group === 'soft' ? '软解码' : '硬解码'));
                 
                 if (!ijkGroup) {
-                    alert('找不到对应的解码组!');
+                    showCustomAlert('找不到对应的解码组!');
                     return;
                 }
                 
@@ -2101,7 +2155,7 @@ cms.qdwght.com</textarea>
             // 复制到剪贴板
             copyBtn.addEventListener('click', async function() {
                 if (!checkRequiredFields()) {
-                    alert('请完善信息后再进行此操作');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -2109,13 +2163,13 @@ cms.qdwght.com</textarea>
                 const jsonString = JSON.stringify(config, null, 2);
                 
                 if (!jsonString) {
-                    alert("错误：没有可复制的配置内容！");
+                    showCustomAlert("错误：没有可复制的配置内容！");
                     return;
                 }
                 
                 try {
                     await navigator.clipboard.writeText(jsonString);
-                    alert('✅ 配置已复制到剪贴板！');
+                    showCustomAlert('✅ 配置已复制到剪贴板！');
                 } catch (err) {
                     console.error("复制失败:", err);
                     // 创建临时textarea来执行复制
@@ -2125,9 +2179,9 @@ cms.qdwght.com</textarea>
                     textarea.select();
                     try {
                         const success = document.execCommand('copy');
-                        alert(success ? '✅ 配置已复制（兼容模式）！' : '❌ 复制失败，请手动选择文本复制');
+                        showCustomAlert(success ? '✅ 配置已复制（兼容模式）！' : '❌ 复制失败，请手动选择文本复制');
                     } catch (e) {
-                        alert('❌ 复制失败，请手动选择文本复制');
+                        showCustomAlert('❌ 复制失败，请手动选择文本复制');
                     }
                     document.body.removeChild(textarea);
                 }
@@ -2136,7 +2190,7 @@ cms.qdwght.com</textarea>
             // 下载配置文件
             downloadBtn.addEventListener('click', function() {
                 if (!checkRequiredFields()) {
-                    alert('请完善信息后再进行此操作');
+                    showCustomAlert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -2144,7 +2198,7 @@ cms.qdwght.com</textarea>
                 const jsonString = JSON.stringify(config, null, 2);
                 
                 if (!jsonString) {
-                    alert("错误：没有可下载的配置内容！");
+                    showCustomAlert("错误：没有可下载的配置内容！");
                     return;
                 }
                 
@@ -2169,7 +2223,7 @@ cms.qdwght.com</textarea>
                     }, 100);
                 } catch (err) {
                     console.error("下载失败:", err);
-                    alert('❌ 下载失败，请检查浏览器支持或手动复制保存');
+                    showCustomAlert('❌ 下载失败，请检查浏览器支持或手动复制保存');
                 }
             });
 
