@@ -495,11 +495,11 @@
             </div>
             <div class="config-row">
                 <div class="config-label">Key:</div>
-                <input type="text" id="vod-key" placeholder="点播源key" required>
+                <input type="text" id="vod-key" placeholder="点播源key">
             </div>
             <div class="config-row">
                 <div class="config-label">Name:</div>
-                <input type="text" id="vod-name" placeholder="点播源名称" required>
+                <input type="text" id="vod-name" placeholder="点播源名称">
             </div>
             <div class="config-row">
                 <div class="config-label">Type:</div>
@@ -513,7 +513,7 @@
             </div>
             <div class="config-row">
                 <div class="config-label">API:</div>
-                <input type="text" id="vod-api" placeholder="API地址" required>
+                <input type="text" id="vod-api" placeholder="API地址">
             </div>
             <div class="config-row">
                 <div class="config-label">JAR:</div>
@@ -1086,18 +1086,6 @@ cms.qdwght.com</textarea>
                 return vodKeyInput.value.trim() && vodNameInput.value.trim() && vodApiInput.value.trim();
             }
 
-            // 更新按钮状态
-            function updateButtonStates() {
-                const isFieldsFilled = checkRequiredFields();
-                copyBtn.disabled = !isFieldsFilled;
-                downloadBtn.disabled = !isFieldsFilled;
-            }
-
-            // 监听必填字段变化
-            vodKeyInput.addEventListener('input', updateButtonStates);
-            vodNameInput.addEventListener('input', updateButtonStates);
-            vodApiInput.addEventListener('input', updateButtonStates);
-
             // 标签页切换
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1151,7 +1139,6 @@ cms.qdwght.com</textarea>
                 loadVodItems();
                 
                 clearVodForm();
-                updateButtonStates();
             });
 
             // 更新点播源
@@ -1196,13 +1183,11 @@ cms.qdwght.com</textarea>
                 loadVodItems();
                 
                 cancelEdit();
-                updateButtonStates();
             });
 
             // 取消编辑
             cancelEditBtn.addEventListener('click', function() {
                 cancelEdit();
-                updateButtonStates();
             });
 
             function cancelEdit() {
@@ -1741,9 +1726,6 @@ cms.qdwght.com</textarea>
                         addVodBtn.style.display = 'none';
                         updateVodBtn.style.display = 'inline-block';
                         cancelEditBtn.style.display = 'inline-block';
-                        
-                        // 更新按钮状态
-                        updateButtonStates();
                     });
                 });
                 
@@ -2119,7 +2101,7 @@ cms.qdwght.com</textarea>
             // 复制到剪贴板
             copyBtn.addEventListener('click', async function() {
                 if (!checkRequiredFields()) {
-                    alert('请先填写key、name和api这三个必填字段！');
+                    alert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -2154,7 +2136,7 @@ cms.qdwght.com</textarea>
             // 下载配置文件
             downloadBtn.addEventListener('click', function() {
                 if (!checkRequiredFields()) {
-                    alert('请先填写key、name和api这三个必填字段！');
+                    alert('请完善信息后再进行此操作');
                     return;
                 }
                 
@@ -2237,9 +2219,6 @@ cms.qdwght.com</textarea>
                         this.parentElement.remove();
                     });
                 });
-                
-                // 初始化按钮状态
-                updateButtonStates();
             }
 
             // 初始化页面
