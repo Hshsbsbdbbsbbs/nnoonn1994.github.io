@@ -410,51 +410,6 @@
             padding: 8px 12px;
             min-width: auto;
         }
-
-        /* 密码对话框样式 */
-        .password-dialog {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none;
-        }
-        
-        .password-box {
-            background-color: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 400px;
-        }
-        
-        .password-box h3 {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .password-input {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 16px;
-        }
-        
-        .password-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
         
         @media (max-width: 768px) {
             body {
@@ -827,18 +782,6 @@ cms.qdwght.com</textarea>
         </div>
     </div>
 
-    <!-- 密码对话框 -->
-    <div class="password-dialog" id="password-dialog">
-        <div class="password-box">
-            <h3>请输入密码</h3>
-            <input type="password" class="password-input" id="password-input" placeholder="请输入密码">
-            <div class="password-buttons">
-                <button id="cancel-password-btn" class="button-cancel">取消</button>
-                <button id="confirm-password-btn" class="button-success">确认</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化配置数据
@@ -1124,16 +1067,6 @@ cms.qdwght.com</textarea>
             const ijkNameInput = document.querySelector('.ijk-name');
             const ijkValueInput = document.querySelector('.ijk-value');
             const ijkOptionsList = document.getElementById('ijk-options-list');
-            
-            // 密码对话框相关元素
-            const passwordDialog = document.getElementById('password-dialog');
-            const passwordInput = document.getElementById('password-input');
-            const confirmPasswordBtn = document.getElementById('confirm-password-btn');
-            const cancelPasswordBtn = document.getElementById('cancel-password-btn');
-            
-            // 密码
-            const PASSWORD = "wdybxyq";
-            let currentAction = null; // 'copy' or 'download'
 
             // 编辑相关变量
             let draggedItem = null;
@@ -1824,7 +1757,7 @@ cms.qdwght.com</textarea>
                         
                         let urlsHtml = '';
                         channel.urls.forEach((url, urlIndex) => {
-                            urlsHtml += `<p>Urls: ${url}</p>`;
+                            urlsHtml += `<p>Urls: ${url}</p>`;  // 修改这里，将URL1改为Urls
                         });
                         
                         item.innerHTML = `
@@ -2157,62 +2090,8 @@ cms.qdwght.com</textarea>
                 }
             }
             
-            // 显示密码对话框
-            function showPasswordDialog(action) {
-                currentAction = action;
-                passwordInput.value = '';
-                passwordDialog.style.display = 'flex';
-                passwordInput.focus();
-            }
-            
-            // 隐藏密码对话框
-            function hidePasswordDialog() {
-                passwordDialog.style.display = 'none';
-                currentAction = null;
-            }
-            
-            // 验证密码
-            function verifyPassword() {
-                const inputPassword = passwordInput.value.trim();
-                if (inputPassword === PASSWORD) {
-                    hidePasswordDialog();
-                    return true;
-                } else {
-                    alert('密码错误，请重新输入！');
-                    passwordInput.value = '';
-                    passwordInput.focus();
-                    return false;
-                }
-            }
-            
             // 复制到剪贴板
-            copyBtn.addEventListener('click', function() {
-                showPasswordDialog('copy');
-            });
-            
-            // 下载配置文件
-            downloadBtn.addEventListener('click', function() {
-                showPasswordDialog('download');
-            });
-            
-            // 确认密码按钮
-            confirmPasswordBtn.addEventListener('click', function() {
-                if (verifyPassword()) {
-                    if (currentAction === 'copy') {
-                        performCopy();
-                    } else if (currentAction === 'download') {
-                        performDownload();
-                    }
-                }
-            });
-            
-            // 取消密码按钮
-            cancelPasswordBtn.addEventListener('click', function() {
-                hidePasswordDialog();
-            });
-            
-            // 执行复制操作
-            async function performCopy() {
+            copyBtn.addEventListener('click', async function() {
                 updateConfigJson();
                 const jsonString = JSON.stringify(config, null, 2);
                 
@@ -2239,10 +2118,10 @@ cms.qdwght.com</textarea>
                     }
                     document.body.removeChild(textarea);
                 }
-            }
-            
-            // 执行下载操作
-            function performDownload() {
+            });
+
+            // 下载配置文件
+            downloadBtn.addEventListener('click', function() {
                 updateConfigJson();
                 const jsonString = JSON.stringify(config, null, 2);
                 
@@ -2274,7 +2153,7 @@ cms.qdwght.com</textarea>
                     console.error("下载失败:", err);
                     alert('❌ 下载失败，请检查浏览器支持或手动复制保存');
                 }
-            }
+            });
 
             // 输入框实时更新配置
             globalSpiderInput.addEventListener('input', updateConfigJson);
