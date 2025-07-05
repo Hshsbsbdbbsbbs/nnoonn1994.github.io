@@ -360,17 +360,6 @@
             gap: 10px;
         }
         
-        #config-json {
-            width: 100%;
-            height: 200px;
-            background-color: #f8f9fa;
-            border: 1px solid var(--border-color);
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            display: none; /* 隐藏JSON显示区域 */
-        }
-        
         .channel-item,
         .parse-item {
             background-color: white;
@@ -784,14 +773,12 @@ cms.qdwght.com</textarea>
 
         <div class="json-output">
             <div class="json-header">
-                <h3>生成的配置JSON</h3>
+                <h3>配置输出</h3>
                 <div class="json-header-actions">
                     <button id="copy-btn" class="button-success">复制到剪贴板</button>
                     <button id="download-btn" class="button-info">下载配置文件</button>
-                    <button id="toggle-json-btn" class="button-warning">显示JSON</button>
                 </div>
             </div>
-            <textarea id="config-json" readonly></textarea>
         </div>
     </div>
 
@@ -1054,8 +1041,6 @@ cms.qdwght.com</textarea>
             const addUrlBtn = document.getElementById('add-url-btn');
             const copyBtn = document.getElementById('copy-btn');
             const downloadBtn = document.getElementById('download-btn');
-            const toggleJsonBtn = document.getElementById('toggle-json-btn');
-            const configJson = document.getElementById('config-json');
             const vodItems = document.getElementById('vod-items');
             const liveChannelsList = document.getElementById('live-channels-list');
             const parseList = document.getElementById('parse-list');
@@ -1092,14 +1077,6 @@ cms.qdwght.com</textarea>
             let editingParseIndex = -1;
             let editingIjkOptionIndex = -1;
             let currentIjkGroup = 'soft';
-            let jsonVisible = false;
-
-            // 切换JSON显示
-            toggleJsonBtn.addEventListener('click', function() {
-                jsonVisible = !jsonVisible;
-                configJson.style.display = jsonVisible ? 'block' : 'none';
-                toggleJsonBtn.textContent = jsonVisible ? '隐藏JSON' : '显示JSON';
-            });
 
             // 标签页切换
             tabBtns.forEach(btn => {
@@ -2092,7 +2069,7 @@ cms.qdwght.com</textarea>
                 return types[type] || '未知';
             }
 
-            // 更新配置JSON显示
+            // 更新配置JSON
             function updateConfigJson() {
                 const globalSpider = globalSpiderInput.value.trim();
                 if (globalSpider) {
@@ -2103,8 +2080,6 @@ cms.qdwght.com</textarea>
                 
                 config.flags = vipFlagsInput.value.split(',').map(f => f.trim()).filter(f => f);
                 
-                // 更新IJK配置时不再处理文本区域，因为现在直接操作config对象
-                
                 config.ads = adDomainsTextarea.value.split('\n').map(d => d.trim()).filter(d => d);
                 
                 const wallpaper = wallpaperUrlInput.value.trim();
@@ -2113,42 +2088,51 @@ cms.qdwght.com</textarea>
                 } else {
                     config.wallpaper = "";
                 }
-                
-                configJson.value = JSON.stringify(config, null, 2);
             }
             
             // 复制到剪贴板
             copyBtn.addEventListener('click', async function() {
-                if (!configJson.value) {
+                updateConfigJson();
+                const jsonString = JSON.stringify(config, null, 2);
+                
+                if (!jsonString) {
                     alert("错误：没有可复制的配置内容！");
                     return;
                 }
                 
                 try {
-                    await navigator.clipboard.writeText(configJson.value);
+                    await navigator.clipboard.writeText(jsonString);
                     alert('✅ 配置已复制到剪贴板！');
                 } catch (err) {
                     console.error("复制失败:", err);
-                    configJson.select();
+                    // 创建临时textarea来执行复制
+                    const textarea = document.createElement('textarea');
+                    textarea.value = jsonString;
+                    document.body.appendChild(textarea);
+                    textarea.select();
                     try {
                         const success = document.execCommand('copy');
                         alert(success ? '✅ 配置已复制（兼容模式）！' : '❌ 复制失败，请手动选择文本复制');
                     } catch (e) {
                         alert('❌ 复制失败，请手动选择文本复制');
                     }
+                    document.body.removeChild(textarea);
                 }
             });
 
             // 下载配置文件
             downloadBtn.addEventListener('click', function() {
-                if (!configJson.value) {
+                updateConfigJson();
+                const jsonString = JSON.stringify(config, null, 2);
+                
+                if (!jsonString) {
                     alert("错误：没有可下载的配置内容！");
                     return;
                 }
                 
                 try {
                     // 创建Blob对象
-                    const blob = new Blob([configJson.value], { type: 'application/json' });
+                    const blob = new Blob([jsonString], { type: 'application/json' });
                     
                     // 创建下载链接
                     const url = URL.createObjectURL(blob);
@@ -2221,7 +2205,6 @@ cms.qdwght.com</textarea>
 
             // 初始化页面
             initFormValues();
-            updateConfigJson();
         });
     </script>
 </body>
