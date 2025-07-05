@@ -495,11 +495,11 @@
             </div>
             <div class="config-row">
                 <div class="config-label">Key:</div>
-                <input type="text" id="vod-key" placeholder="点播源key">
+                <input type="text" id="vod-key" placeholder="点播源key" required>
             </div>
             <div class="config-row">
                 <div class="config-label">Name:</div>
-                <input type="text" id="vod-name" placeholder="点播源名称">
+                <input type="text" id="vod-name" placeholder="点播源名称" required>
             </div>
             <div class="config-row">
                 <div class="config-label">Type:</div>
@@ -513,7 +513,7 @@
             </div>
             <div class="config-row">
                 <div class="config-label">API:</div>
-                <input type="text" id="vod-api" placeholder="API地址">
+                <input type="text" id="vod-api" placeholder="API地址" required>
             </div>
             <div class="config-row">
                 <div class="config-label">JAR:</div>
@@ -1067,6 +1067,9 @@ cms.qdwght.com</textarea>
             const ijkNameInput = document.querySelector('.ijk-name');
             const ijkValueInput = document.querySelector('.ijk-value');
             const ijkOptionsList = document.getElementById('ijk-options-list');
+            const vodKeyInput = document.getElementById('vod-key');
+            const vodNameInput = document.getElementById('vod-name');
+            const vodApiInput = document.getElementById('vod-api');
 
             // 编辑相关变量
             let draggedItem = null;
@@ -1077,6 +1080,23 @@ cms.qdwght.com</textarea>
             let editingParseIndex = -1;
             let editingIjkOptionIndex = -1;
             let currentIjkGroup = 'soft';
+
+            // 检查必填字段是否已填写
+            function checkRequiredFields() {
+                return vodKeyInput.value.trim() && vodNameInput.value.trim() && vodApiInput.value.trim();
+            }
+
+            // 更新按钮状态
+            function updateButtonStates() {
+                const isFieldsFilled = checkRequiredFields();
+                copyBtn.disabled = !isFieldsFilled;
+                downloadBtn.disabled = !isFieldsFilled;
+            }
+
+            // 监听必填字段变化
+            vodKeyInput.addEventListener('input', updateButtonStates);
+            vodNameInput.addEventListener('input', updateButtonStates);
+            vodApiInput.addEventListener('input', updateButtonStates);
 
             // 标签页切换
             tabBtns.forEach(btn => {
@@ -1093,9 +1113,9 @@ cms.qdwght.com</textarea>
 
             // 添加点播源
             addVodBtn.addEventListener('click', function() {
-                const key = document.getElementById('vod-key').value.trim();
-                const name = document.getElementById('vod-name').value.trim();
-                const api = document.getElementById('vod-api').value.trim();
+                const key = vodKeyInput.value.trim();
+                const name = vodNameInput.value.trim();
+                const api = vodApiInput.value.trim();
                 const jar = vodJarInput.value.trim();
                 const ext = vodExtInput.value.trim();
                 
@@ -1131,15 +1151,16 @@ cms.qdwght.com</textarea>
                 loadVodItems();
                 
                 clearVodForm();
+                updateButtonStates();
             });
 
             // 更新点播源
             updateVodBtn.addEventListener('click', function() {
                 if (editingIndex === -1) return;
                 
-                const key = document.getElementById('vod-key').value.trim();
-                const name = document.getElementById('vod-name').value.trim();
-                const api = document.getElementById('vod-api').value.trim();
+                const key = vodKeyInput.value.trim();
+                const name = vodNameInput.value.trim();
+                const api = vodApiInput.value.trim();
                 const jar = vodJarInput.value.trim();
                 const ext = vodExtInput.value.trim();
                 
@@ -1175,11 +1196,13 @@ cms.qdwght.com</textarea>
                 loadVodItems();
                 
                 cancelEdit();
+                updateButtonStates();
             });
 
             // 取消编辑
             cancelEditBtn.addEventListener('click', function() {
                 cancelEdit();
+                updateButtonStates();
             });
 
             function cancelEdit() {
@@ -1191,9 +1214,9 @@ cms.qdwght.com</textarea>
             }
 
             function clearVodForm() {
-                document.getElementById('vod-key').value = '';
-                document.getElementById('vod-name').value = '';
-                document.getElementById('vod-api').value = '';
+                vodKeyInput.value = '';
+                vodNameInput.value = '';
+                vodApiInput.value = '';
                 vodJarInput.value = '';
                 vodExtInput.value = '';
             }
@@ -1697,10 +1720,10 @@ cms.qdwght.com</textarea>
                         const site = config.sites[index];
                         
                         // 填充表单
-                        document.getElementById('vod-key').value = site.key;
-                        document.getElementById('vod-name').value = site.name;
+                        vodKeyInput.value = site.key;
+                        vodNameInput.value = site.name;
                         document.getElementById('vod-type').value = site.type;
-                        document.getElementById('vod-api').value = site.api;
+                        vodApiInput.value = site.api;
                         vodJarInput.value = site.jar || '';
                         document.getElementById('vod-searchable').value = site.searchable;
                         document.getElementById('vod-quickSearch').value = site.quickSearch;
@@ -1718,6 +1741,9 @@ cms.qdwght.com</textarea>
                         addVodBtn.style.display = 'none';
                         updateVodBtn.style.display = 'inline-block';
                         cancelEditBtn.style.display = 'inline-block';
+                        
+                        // 更新按钮状态
+                        updateButtonStates();
                     });
                 });
                 
@@ -2092,6 +2118,11 @@ cms.qdwght.com</textarea>
             
             // 复制到剪贴板
             copyBtn.addEventListener('click', async function() {
+                if (!checkRequiredFields()) {
+                    alert('请先填写key、name和api这三个必填字段！');
+                    return;
+                }
+                
                 updateConfigJson();
                 const jsonString = JSON.stringify(config, null, 2);
                 
@@ -2122,6 +2153,11 @@ cms.qdwght.com</textarea>
 
             // 下载配置文件
             downloadBtn.addEventListener('click', function() {
+                if (!checkRequiredFields()) {
+                    alert('请先填写key、name和api这三个必填字段！');
+                    return;
+                }
+                
                 updateConfigJson();
                 const jsonString = JSON.stringify(config, null, 2);
                 
@@ -2201,6 +2237,9 @@ cms.qdwght.com</textarea>
                         this.parentElement.remove();
                     });
                 });
+                
+                // 初始化按钮状态
+                updateButtonStates();
             }
 
             // 初始化页面
