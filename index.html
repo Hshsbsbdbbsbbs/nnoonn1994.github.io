@@ -411,6 +411,44 @@
             min-width: auto;
         }
         
+        /* 自定义弹窗样式 */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        .custom-alert p {
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+        
+        .custom-alert button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
         @media (max-width: 768px) {
             body {
                 padding: 15px;
@@ -463,44 +501,6 @@
                 width: 100%;
                 min-width: 100%;
             }
-        }
-        
-        /* 自定义弹窗样式 */
-        .custom-alert {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            text-align: center;
-        }
-        
-        .custom-alert p {
-            color: #f44336;
-            margin-bottom: 20px;
-        }
-        
-        .custom-alert button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
         }
     </style>
 </head>
@@ -1118,11 +1118,7 @@ cms.qdwght.com</textarea>
             let editingParseIndex = -1;
             let editingIjkOptionIndex = -1;
             let currentIjkGroup = 'soft';
-
-            // 检查必填字段是否已填写
-            function checkRequiredFields() {
-                return vodKeyInput.value.trim() && vodNameInput.value.trim() && vodApiInput.value.trim();
-            }
+            let hasAddedVodSource = false; // 新增标志，表示是否已添加点播源
 
             // 自定义警告弹窗
             function showCustomAlert(message) {
@@ -1138,6 +1134,15 @@ cms.qdwght.com</textarea>
                 
                 overlay.appendChild(alertBox);
                 document.body.appendChild(overlay);
+            }
+
+            // 检查是否已添加点播源
+            function checkVodSourceAdded() {
+                if (!hasAddedVodSource) {
+                    showCustomAlert('请完善信息后再进行此操作');
+                    return false;
+                }
+                return true;
             }
 
             // 标签页切换
@@ -1162,7 +1167,7 @@ cms.qdwght.com</textarea>
                 const ext = vodExtInput.value.trim();
                 
                 if (!key || !name || !api) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的点播源信息!');
                     return;
                 }
                 
@@ -1192,6 +1197,9 @@ cms.qdwght.com</textarea>
                 updateConfigJson();
                 loadVodItems();
                 
+                // 设置已添加点播源标志
+                hasAddedVodSource = true;
+                
                 clearVodForm();
             });
 
@@ -1206,7 +1214,7 @@ cms.qdwght.com</textarea>
                 const ext = vodExtInput.value.trim();
                 
                 if (!key || !name || !api) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的点播源信息!');
                     return;
                 }
                 
@@ -1283,7 +1291,7 @@ cms.qdwght.com</textarea>
                 const urls = Array.from(urlInputs).map(input => input.value.trim()).filter(url => url);
                 
                 if (!group || !name || urls.length === 0) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的直播频道信息!');
                     return;
                 }
                 
@@ -1318,7 +1326,7 @@ cms.qdwght.com</textarea>
                 const urls = Array.from(urlInputs).map(input => input.value.trim()).filter(url => url);
                 
                 if (!group || !name || urls.length === 0) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的直播频道信息!');
                     return;
                 }
                 
@@ -1400,7 +1408,7 @@ cms.qdwght.com</textarea>
                 const ext = parseExtInput.value.trim();
                 
                 if (!name || !url) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的解析地址信息!');
                     return;
                 }
                 
@@ -1432,7 +1440,7 @@ cms.qdwght.com</textarea>
                 const ext = parseExtInput.value.trim();
                 
                 if (!name || !url) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的解析地址信息!');
                     return;
                 }
                 
@@ -1496,7 +1504,7 @@ cms.qdwght.com</textarea>
                 const value = ijkValueInput.value.trim();
                 
                 if (!name || !value) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的解码选项信息!');
                     return;
                 }
                 
@@ -1536,7 +1544,7 @@ cms.qdwght.com</textarea>
                 const value = ijkValueInput.value.trim();
                 
                 if (!name || !value) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                    showCustomAlert('请填写完整的解码选项信息!');
                     return;
                 }
                 
@@ -2154,8 +2162,7 @@ cms.qdwght.com</textarea>
             
             // 复制到剪贴板
             copyBtn.addEventListener('click', async function() {
-                if (!checkRequiredFields()) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                if (!checkVodSourceAdded()) {
                     return;
                 }
                 
@@ -2189,8 +2196,7 @@ cms.qdwght.com</textarea>
 
             // 下载配置文件
             downloadBtn.addEventListener('click', function() {
-                if (!checkRequiredFields()) {
-                    showCustomAlert('请完善信息后再进行此操作');
+                if (!checkVodSourceAdded()) {
                     return;
                 }
                 
