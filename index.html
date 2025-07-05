@@ -368,6 +368,7 @@
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 13px;
             line-height: 1.5;
+            display: none; /* 隐藏JSON显示区域 */
         }
         
         .channel-item,
@@ -491,7 +492,6 @@
             <button class="tab-btn" data-tab="ijk">IJK解码配置</button>
             <button class="tab-btn" data-tab="ad">解析广告过滤</button>
             <button class="tab-btn" data-tab="wallpaper">壁纸</button>
-            <button class="tab-btn" data-tab="aes">AES加密</button>
         </div>
 
         <div class="instruction">
@@ -782,43 +782,19 @@ cms.qdwght.com</textarea>
             </div>
         </div>
 
-        <div class="config-section" id="aes-config">
-            <h3>AES-128-CBC 加密配置</h3>
-            <div class="config-row">
-                <div class="config-label">密钥(Key):</div>
-                <input type="text" id="aes-key" placeholder="16字节(128位)密钥" maxlength="16">
-                <button id="generate-aes-key" class="button-success">随机生成</button>
-            </div>
-            <div class="config-row">
-                <div class="config-label">初始向量(IV):</div>
-                <input type="text" id="aes-iv" placeholder="16字节(128位)初始向量" maxlength="16">
-                <button id="generate-aes-iv" class="button-success">随机生成</button>
-            </div>
-            <div class="config-row">
-                <div class="config-label">加密结果:</div>
-                <textarea id="aes-result" readonly placeholder="加密后的内容将显示在这里"></textarea>
-            </div>
-            <div class="button-group">
-                <button id="encrypt-btn" class="button-success">加密配置</button>
-                <button id="copy-aes-btn" class="button-info">复制加密结果</button>
-                <button id="download-aes-btn" class="button-info">下载加密配置</button>
-            </div>
-        </div>
-
         <div class="json-output">
             <div class="json-header">
                 <h3>生成的配置JSON</h3>
                 <div class="json-header-actions">
                     <button id="copy-btn" class="button-success">复制到剪贴板</button>
                     <button id="download-btn" class="button-info">下载配置文件</button>
+                    <button id="toggle-json-btn" class="button-warning">显示JSON</button>
                 </div>
             </div>
             <textarea id="config-json" readonly></textarea>
         </div>
     </div>
 
-    <!-- 引入CryptoJS库用于AES加密 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化配置数据
@@ -1078,6 +1054,7 @@ cms.qdwght.com</textarea>
             const addUrlBtn = document.getElementById('add-url-btn');
             const copyBtn = document.getElementById('copy-btn');
             const downloadBtn = document.getElementById('download-btn');
+            const toggleJsonBtn = document.getElementById('toggle-json-btn');
             const configJson = document.getElementById('config-json');
             const vodItems = document.getElementById('vod-items');
             const liveChannelsList = document.getElementById('live-channels-list');
@@ -1105,16 +1082,6 @@ cms.qdwght.com</textarea>
             const ijkNameInput = document.querySelector('.ijk-name');
             const ijkValueInput = document.querySelector('.ijk-value');
             const ijkOptionsList = document.getElementById('ijk-options-list');
-            
-            // AES加密相关元素
-            const aesKeyInput = document.getElementById('aes-key');
-            const aesIvInput = document.getElementById('aes-iv');
-            const aesResultTextarea = document.getElementById('aes-result');
-            const generateAesKeyBtn = document.getElementById('generate-aes-key');
-            const generateAesIvBtn = document.getElementById('generate-aes-iv');
-            const encryptBtn = document.getElementById('encrypt-btn');
-            const copyAesBtn = document.getElementById('copy-aes-btn');
-            const downloadAesBtn = document.getElementById('download-aes-btn');
 
             // 编辑相关变量
             let draggedItem = null;
@@ -1125,6 +1092,14 @@ cms.qdwght.com</textarea>
             let editingParseIndex = -1;
             let editingIjkOptionIndex = -1;
             let currentIjkGroup = 'soft';
+            let jsonVisible = false;
+
+            // 切换JSON显示
+            toggleJsonBtn.addEventListener('click', function() {
+                jsonVisible = !jsonVisible;
+                configJson.style.display = jsonVisible ? 'block' : 'none';
+                toggleJsonBtn.textContent = jsonVisible ? '隐藏JSON' : '显示JSON';
+            });
 
             // 标签页切换
             tabBtns.forEach(btn => {
@@ -1137,130 +1112,6 @@ cms.qdwght.com</textarea>
                     });
                     document.getElementById(`${tab}-config`).classList.add('active');
                 });
-            });
-
-            // 生成随机字符串
-            function generateRandomString(length) {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                let result = '';
-                for (let i = 0; i < length; i++) {
-                    result += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
-                return result;
-            }
-
-            // 生成随机AES密钥
-            generateAesKeyBtn.addEventListener('click', function() {
-                aesKeyInput.value = generateRandomString(16);
-            });
-
-            // 生成随机IV
-            generateAesIvBtn.addEventListener('click', function() {
-                aesIvInput.value = generateRandomString(16);
-            });
-
-            // AES加密函数
-            function encryptAES(text, key, iv) {
-                try {
-                    // 严格校验Key和IV长度
-                    if (key.length !== 16 || iv.length !== 16) {
-                        throw new Error('密钥和初始向量必须是16字节(128位)');
-                    }
-                    
-                    const keyBytes = CryptoJS.enc.Utf8.parse(key);
-                    const ivBytes = CryptoJS.enc.Utf8.parse(iv);
-                    
-                    const encrypted = CryptoJS.AES.encrypt(text, keyBytes, {
-                        iv: ivBytes,
-                        mode: CryptoJS.mode.CBC,
-                        padding: CryptoJS.pad.Pkcs7
-                    });
-                    
-                    return encrypted.toString();
-                } catch (error) {
-                    console.error('AES加密失败:', error);
-                    return null;
-                }
-            }
-
-            // 加密配置
-            encryptBtn.addEventListener('click', function() {
-                const key = aesKeyInput.value.trim();
-                const iv = aesIvInput.value.trim();
-                
-                if (!key || key.length !== 16) {
-                    alert('密钥必须是16字节(128位)长度!');
-                    return;
-                }
-                
-                if (!iv || iv.length !== 16) {
-                    alert('初始向量必须是16字节(128位)长度!');
-                    return;
-                }
-                
-                const jsonStr = JSON.stringify(config, null, 2);
-                const encrypted = encryptAES(jsonStr, key, iv);
-                
-                if (encrypted) {
-                    aesResultTextarea.value = encrypted;
-                    alert('配置加密成功!');
-                } else {
-                    alert('配置加密失败，请检查输入参数!');
-                }
-            });
-
-            // 复制加密结果
-            copyAesBtn.addEventListener('click', async function() {
-                if (!aesResultTextarea.value) {
-                    alert("错误：没有可复制的加密内容！");
-                    return;
-                }
-                
-                try {
-                    await navigator.clipboard.writeText(aesResultTextarea.value);
-                    alert('✅ 加密内容已复制到剪贴板！');
-                } catch (err) {
-                    console.error("复制失败:", err);
-                    aesResultTextarea.select();
-                    try {
-                        const success = document.execCommand('copy');
-                        alert(success ? '✅ 加密内容已复制（兼容模式）！' : '❌ 复制失败，请手动选择文本复制');
-                    } catch (e) {
-                        alert('❌ 复制失败，请手动选择文本复制');
-                    }
-                }
-            });
-
-            // 下载加密配置
-            downloadAesBtn.addEventListener('click', function() {
-                if (!aesResultTextarea.value) {
-                    alert("错误：没有可下载的加密内容！");
-                    return;
-                }
-                
-                try {
-                    // 创建Blob对象
-                    const blob = new Blob([aesResultTextarea.value], { type: 'text/plain' });
-                    
-                    // 创建下载链接
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'tvbox_config_encrypted.txt';
-                    
-                    // 触发下载
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    // 清理
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    }, 100);
-                } catch (err) {
-                    console.error("下载失败:", err);
-                    alert('❌ 下载失败，请检查浏览器支持或手动复制保存');
-                }
             });
 
             // 添加点播源
@@ -1929,7 +1780,7 @@ cms.qdwght.com</textarea>
                         
                         let urlsHtml = '';
                         channel.urls.forEach((url, urlIndex) => {
-                            urlsHtml += `<p>Urls: ${url}</p>`;
+                            urlsHtml += `<p>Urls: ${url}</p>`;  // 修改这里，将URL1改为Urls
                         });
                         
                         item.innerHTML = `
