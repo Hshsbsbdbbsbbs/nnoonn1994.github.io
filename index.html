@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TVBOX接口加密解密工具 - AES-128-CBC + 图片转换</title>
+  <title>TVBOX接口加密解密工具 - AES-128-CBC</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -31,135 +31,91 @@
     .textarea-group {
       flex: 1;
     }
-    .input-group {
-      width: 300px;
-    }
     textarea {
       width: 100%;
-      height: 400px;
+      height: 500px;
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 4px;
       resize: none;
       font-family: monospace;
     }
-    .form-control {
-      margin-bottom: 15px;
+    .input-group {
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input[type="text"] {
+    select, input {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       border: 1px solid #ddd;
       border-radius: 4px;
     }
     .btn-group {
       display: flex;
+      flex-direction: column;
       gap: 10px;
-      margin-bottom: 15px;
     }
     button {
-      padding: 8px 15px;
+      padding: 10px 15px;
+      background-color: #409eff;
+      color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-weight: bold;
+      transition: background-color 0.3s;
     }
-    .btn-encrypt {
-      background-color: #28a745;
-      color: white;
+    button:hover {
+      background-color: #66b1ff;
     }
-    .btn-decrypt {
-      background-color: #007bff;
-      color: white;
+    button.success {
+      background-color: #67c23a;
     }
-    .btn-upload {
-      background-color: #6c757d;
-      color: white;
-    }
-    .btn-download {
-      background-color: #17a2b8;
-      color: white;
-    }
-    .btn-img {
-      background-color: #ffc107;
-      color: black;
+    button.success:hover {
+      background-color: #85ce61;
     }
     .checkbox-group {
-      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
-    select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      margin-bottom: 15px;
-    }
-    .file-input {
-      display: none;
-    }
-    #imagePreview {
-      max-width: 100%;
-      margin-top: 10px;
+    .hidden {
       display: none;
     }
   </style>
 </head>
 <body>
   <div class="wrapper">
-    <h2>TVBOX接口加密解密工具 - AES-128-CBC + 图片转换</h2>
+    <h2>TVBOX接口加密解密工具 - AES-128-CBC</h2>
     <div class="inner">
       <div class="textarea-group">
-        <textarea id="inputText" placeholder="请输入要加密/解密的文本"></textarea>
+        <textarea id="inputText" placeholder="请输入要加密/解密的文本内容..."></textarea>
       </div>
       <div class="input-group">
-        <div class="form-control">
-          <label for="operation">操作类型</label>
-          <select id="operation">
-            <option value="encrypt">加密</option>
-            <option value="decrypt">解密</option>
-          </select>
-        </div>
-        
-        <div class="form-control">
-          <label for="key">KEY/密码</label>
-          <input type="text" id="key" value="123456" maxlength="16">
-        </div>
-        
-        <div class="form-control">
-          <label for="iv">IV/向量</label>
-          <input type="text" id="iv" value="" maxlength="13">
-        </div>
-        
+        <select id="actionType">
+          <option value="encrypt">加密</option>
+          <option value="decrypt">解密</option>
+        </select>
+        <input type="text" id="keyInput" placeholder="KEY/密码" maxlength="16" value="123456">
+        <input type="text" id="ivInput" placeholder="IV/向量" maxlength="13" value="">
         <div class="checkbox-group">
           <input type="checkbox" id="base64Check">
           <label for="base64Check">Base64解码</label>
         </div>
-        
         <div class="btn-group">
-          <button class="btn-upload" id="uploadBtn">上传文件</button>
-          <input type="file" id="fileInput" class="file-input">
+          <button id="uploadBtn">上传文件</button>
+          <input type="file" id="fileInput" class="hidden">
+          <button id="processBtn">执行</button>
+          <button id="downloadBtn" class="success">加密下载</button>
         </div>
-        
-        <div class="btn-group">
-          <button class="btn-encrypt" id="processBtn">处理</button>
-          <button class="btn-download" id="downloadBtn">下载结果</button>
+        <div class="iframe-group">
+          <button id="toImageBtn">配置转图片</button>
+          <input type="file" id="imageInput" class="hidden" accept=".txt,.json">
         </div>
-        
-        <div class="btn-group">
-          <button class="btn-img" id="toImgBtn">配置转图片</button>
-          <button class="btn-img" id="fromImgBtn">图片转配置</button>
-          <input type="file" id="imgInput" accept="image/*" class="file-input">
-        </div>
-        
-        <img id="imagePreview" alt="配置图片预览">
       </div>
       <div class="textarea-group">
-        <textarea id="outputText" placeholder="处理结果将显示在这里" readonly></textarea>
+        <textarea id="outputText" placeholder="结果将显示在这里..." readonly></textarea>
       </div>
     </div>
   </div>
@@ -167,14 +123,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // 初始化IV为当前时间戳
-      document.getElementById('iv').value = new Date().getTime();
+      // 初始化IV值为当前时间戳
+      document.getElementById('ivInput').value = new Date().getTime();
       
-      // 上传文件按钮事件
+      // 上传文件按钮点击事件
       document.getElementById('uploadBtn').addEventListener('click', function() {
         document.getElementById('fileInput').click();
       });
       
+      // 文件选择事件
       document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -186,293 +143,195 @@
         reader.readAsText(file);
       });
       
-      // 处理按钮事件
+      // 配置转图片按钮点击事件
+      document.getElementById('toImageBtn').addEventListener('click', function() {
+        document.getElementById('imageInput').click();
+      });
+      
+      // 图片转换处理
+      document.getElementById('imageInput').addEventListener('change', toImg);
+      
+      // 执行按钮点击事件
       document.getElementById('processBtn').addEventListener('click', processData);
       
-      // 下载按钮事件
+      // 下载按钮点击事件
       document.getElementById('downloadBtn').addEventListener('click', downloadResult);
-      
-      // 配置转图片按钮事件
-      document.getElementById('toImgBtn').addEventListener('click', function() {
-        const text = document.getElementById('inputText').value.trim();
-        if (!text) {
-          alert('请输入要转换的配置内容');
-          return;
-        }
-        textToImage(text);
+    });
+    
+    function padTo16Byte(str) {
+      return CryptoJS.enc.Utf8.parse(str.toString().padEnd(16, '0'));
+    }
+    
+    /**
+     * AES加密:word加密字符串，以及字符串key、iv  返回Hex
+     */
+    function Encrypt(word, keyStr, ivStr) {
+      const key = padTo16Byte(keyStr);
+      const iv = padTo16Byte(ivStr);
+      const encrypted = CryptoJS.AES.encrypt(word, key, {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
       });
-      
-      // 图片转配置按钮事件
-      document.getElementById('fromImgBtn').addEventListener('click', function() {
-        document.getElementById('imgInput').click();
+      return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+    }
+    
+    /**
+     * 解密:字符串 key iv  返回Utf8
+     */
+    function Decrypt(word, keyStr, ivStr) {
+      const key = padTo16Byte(keyStr);
+      const iv = padTo16Byte(ivStr);
+      const ciphertext = CryptoJS.enc.Hex.parse(word);
+      const decrypt = CryptoJS.AES.decrypt({
+        ciphertext: ciphertext
+      }, key, {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
       });
-      
-      document.getElementById('imgInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        imageToText(file);
+      return decrypt.toString(CryptoJS.enc.Utf8);
+    }
+    
+    function decryptAesBCB(encryptedData) {
+      var dataArr = encryptedData.split("");
+      var prefixCode = CryptoJS.enc.Utf8.parse("$#").toString();
+      var suffixCode = CryptoJS.enc.Utf8.parse("#$").toString();
+      var pwdMix = dataArr
+        .splice(0, encryptedData.indexOf(suffixCode) + 4)
+        .join("");
+      var roundtimeInHax = dataArr.splice(dataArr.length - 26, 26).join("");
+      var encryptedText = dataArr.join("");
+      var pwdInHax = pwdMix.substring(
+        prefixCode.length,
+        pwdMix.length - suffixCode.length
+      );
+      var roundTime = CryptoJS.enc.Utf8.stringify(
+        CryptoJS.enc.Hex.parse(roundtimeInHax)
+      );
+      var pwd = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Hex.parse(pwdInHax));
+      var iv = CryptoJS.enc.Utf8.parse(roundTime.padEnd(16, "0"));
+      var pkBlocks = CryptoJS.enc.Utf8.parse(pwd.padEnd(16, "0"));
+      var cipherParams = CryptoJS.lib.CipherParams.create({
+        ciphertext: CryptoJS.enc.Hex.parse(encryptedText),
       });
+      var decryptedData = CryptoJS.enc.Utf8.stringify(
+        CryptoJS.AES.decrypt(cipherParams, pkBlocks, {
+          iv: iv,
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.Pkcs7,
+        })
+      );
+      return decryptedData;
+    }
+    
+    // 字符串转Hex
+    function convertToHex(value) {
+      return CryptoJS.enc.Hex.stringify(CryptoJS.enc.Utf8.parse(value));
+    }
+    
+    // Hex转字符串
+    function convertToString(value) {
+      return CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Hex.parse(value));
+    }
+    
+    function processData() {
+      const inputText = document.getElementById('inputText').value;
+      const actionType = document.getElementById('actionType').value;
+      const key = document.getElementById('keyInput').value;
+      const iv = document.getElementById('ivInput').value;
+      const base64Check = document.getElementById('base64Check').checked;
       
-      function padTo16Byte(str) {
-        return CryptoJS.enc.Utf8.parse(str.toString().padEnd(16, '0'));
+      if (!inputText) {
+        alert('请输入要处理的文本内容！');
+        return;
       }
       
-      function Encrypt(word, keyStr, ivStr) {
-        const key = padTo16Byte(keyStr);
-        const iv = padTo16Byte(ivStr);
-        const encrypted = CryptoJS.AES.encrypt(word, key, { iv });
-        return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
-      }
-      
-      function Decrypt(word, keyStr, ivStr) {
-        const key = padTo16Byte(keyStr);
-        const iv = padTo16Byte(ivStr);
-        const ciphertext = CryptoJS.enc.Hex.parse(word);
-        const decrypt = CryptoJS.AES.decrypt({ ciphertext }, key, { iv });
-        return decrypt.toString(CryptoJS.enc.Utf8);
-      }
-      
-      function decryptAesBCB(encryptedData) {
-        var dataArr = encryptedData.split("");
-        var prefixCode = CryptoJS.enc.Utf8.parse("$#").toString();
-        var suffixCode = CryptoJS.enc.Utf8.parse("#$").toString();
-        var pwdMix = dataArr
-          .splice(0, encryptedData.indexOf(suffixCode) + 4)
-          .join("");
-        var roundtimeInHax = dataArr.splice(dataArr.length - 26, 26).join("");
-        var encryptedText = dataArr.join("");
-        var pwdInHax = pwdMix.substring(
-          prefixCode.length,
-          pwdMix.length - suffixCode.length
-        );
-        var roundTime = CryptoJS.enc.Utf8.stringify(
-          CryptoJS.enc.Hex.parse(roundtimeInHax)
-        );
-        var pwd = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Hex.parse(pwdInHax));
-        var iv = CryptoJS.enc.Utf8.parse(roundTime.padEnd(16, "0"));
-        var pkBlocks = CryptoJS.enc.Utf8.parse(pwd.padEnd(16, "0"));
-        var cipherParams = CryptoJS.lib.CipherParams.create({
-          ciphertext: CryptoJS.enc.Hex.parse(encryptedText),
-        });
-        var decryptedData = CryptoJS.enc.Utf8.stringify(
-          CryptoJS.AES.decrypt(cipherParams, pkBlocks, {
-            iv: iv,
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7,
-          })
-        );
-        return decryptedData;
-      }
-      
-      function convertToHex(value) {
-        return CryptoJS.enc.Hex.stringify(CryptoJS.enc.Utf8.parse(value));
-      }
-      
-      function processData() {
-        const inputText = document.getElementById('inputText').value.trim();
-        const operation = document.getElementById('operation').value;
-        const key = document.getElementById('key').value;
-        const iv = document.getElementById('iv').value;
-        const base64Check = document.getElementById('base64Check').checked;
-        
-        if (!inputText) {
-          alert('请输入要处理的文本');
-          return;
-        }
-        
-        try {
-          let result;
-          
-          if (operation === 'encrypt') {
-            const resultData = Encrypt(inputText, key, iv);
-            const keyHex = convertToHex(`$#${key}#$`);
-            const ivHex = convertToHex(iv);
-            result = `${keyHex}${resultData}${ivHex}`;
-          } else {
-            let encryptedData = inputText;
-            if (base64Check) {
-              encryptedData = window.atob(encryptedData.split("**")[1] || encryptedData);
-            }
-            result = decryptAesBCB(encryptedData);
+      try {
+        let result;
+        if (actionType === 'encrypt') {
+          const resultData = Encrypt(inputText, key, iv);
+          const keyHex = convertToHex(`$#${key}#$`);
+          const ivHex = convertToHex(iv);
+          result = `${keyHex}${resultData}${ivHex}`;
+        } else {
+          let encryptedData = inputText;
+          if (base64Check) {
+            encryptedData = window.atob(encryptedData.split("**")[1] || encryptedData);
           }
-          
-          document.getElementById('outputText').value = result;
-        } catch (err) {
-          console.error(err);
-          alert('处理失败: ' + err.message);
-        }
-      }
-      
-      function downloadResult() {
-        const result = document.getElementById('outputText').value;
-        if (!result) {
-          alert('没有可下载的内容');
-          return;
+          result = decryptAesBCB(encryptedData);
         }
         
-        const blob = new Blob([result], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'result.txt';
-        link.click();
-        URL.revokeObjectURL(url);
+        document.getElementById('outputText').value = result;
+      } catch (err) {
+        console.error(err);
+        alert('处理失败：' + err.message);
+      }
+    }
+    
+    function downloadResult() {
+      const result = document.getElementById('outputText').value;
+      if (!result) {
+        alert('没有可下载的内容！');
+        return;
       }
       
-      // 将文本转换为类似二维码的图片（修改后的版本）
-      function textToImage(text) {
+      const blob = new Blob([result], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'tvbox_config.txt';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    function toImg(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const content = e.target.result;
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // 固定画布大小，看起来像二维码
-        canvas.width = 300;
-        canvas.height = 300;
+        // 设置画布大小
+        canvas.width = 800;
+        canvas.height = Math.max(600, content.split('\n').length * 20 + 100);
         
-        // 绘制白色背景
+        // 绘制背景
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // 将文本编码为二进制数据
-        const binaryData = [];
-        for (let i = 0; i < text.length; i++) {
-          binaryData.push(text.charCodeAt(i).toString(2).padStart(8, '0'));
-        }
-        const binaryString = binaryData.join('');
-        
-        // 绘制类似二维码的图案（实际是伪装的）
-        const blockSize = 10;
-        let x = 20, y = 20;
-        let dataIndex = 0;
-        
-        // 绘制定位标记（像真正的二维码）
+        // 绘制标题
         ctx.fillStyle = 'black';
-        ctx.fillRect(x, y, 7*blockSize, 7*blockSize);
-        ctx.fillRect(x + canvas.width - 9*blockSize, y, 7*blockSize, 7*blockSize);
-        ctx.fillRect(x, y + canvas.height - 9*blockSize, 7*blockSize, 7*blockSize);
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText('TVBOX配置', 50, 40);
         
-        // 绘制数据块（根据文本数据生成）
-        ctx.fillStyle = 'black';
-        x = 20 + 9*blockSize;
-        y = 20;
+        // 绘制文本内容
+        ctx.font = '16px Arial';
+        wrapText(ctx, content, 50, 80, canvas.width - 100, 20);
         
-        for (let i = 0; i < binaryString.length; i++) {
-          if (binaryString[i] === '1') {
-            ctx.fillRect(x, y, blockSize, blockSize);
-          }
-          
-          x += blockSize;
-          if (x > canvas.width - 20 - blockSize) {
-            x = 20 + 9*blockSize;
-            y += blockSize;
-          }
-          
-          // 跳过定位标记区域
-          if (y >= 20 + 7*blockSize && y <= 20 + 9*blockSize) {
-            y = 20 + 9*blockSize;
-          }
-          if (y >= canvas.height - 9*blockSize) {
-            break;
-          }
-        }
-        
-        // 添加一些随机噪声点，使图片看起来更真实
-        for (let i = 0; i < 50; i++) {
-          const randX = Math.floor(Math.random() * (canvas.width - 40)) + 20;
-          const randY = Math.floor(Math.random() * (canvas.height - 40)) + 20;
-          
-          // 确保不在定位标记区域
-          if (!((randX >= 20 && randX <= 20 + 7*blockSize && randY >= 20 && randY <= 20 + 7*blockSize) ||
-                (randX >= canvas.width - 9*blockSize && randX <= canvas.width - 20 && randY >= 20 && randY <= 20 + 7*blockSize) ||
-                (randX >= 20 && randX <= 20 + 7*blockSize && randY >= canvas.height - 9*blockSize && randY <= canvas.height - 20))) {
-            ctx.fillStyle = Math.random() > 0.5 ? 'black' : 'white';
-            ctx.fillRect(randX, randY, blockSize, blockSize);
-          }
-        }
-        
-        // 转换为图片并显示
-        const dataUrl = canvas.toDataURL('image/png');
-        const imgPreview = document.getElementById('imagePreview');
-        imgPreview.src = dataUrl;
-        imgPreview.style.display = 'block';
-        
-        // 提供下载
+        // 转换为图片并下载
+        const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = 'config_qrcode.png';
+        link.href = imgData;
+        link.download = 'tvbox_config.png';
         link.click();
+      };
+      
+      reader.readAsText(file);
+    }
+    
+    // 文本换行函数
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+      const lines = text.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        context.fillText(line, x, y);
+        y += lineHeight;
       }
-
-      // 从图片中提取文本
-      function imageToText(imageFile) {
-        const img = new Image();
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-          img.src = e.target.result;
-          
-          img.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            
-            // 提取二进制数据
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            let binaryString = '';
-            const blockSize = 10;
-            
-            // 扫描数据区域（与生成时对应）
-            let x = 20 + 9*blockSize;
-            let y = 20;
-            
-            while (y < canvas.height - 20) {
-              // 获取像素颜色
-              const pixelIndex = (y * canvas.width + x) * 4;
-              const r = imageData.data[pixelIndex];
-              const g = imageData.data[pixelIndex + 1];
-              const b = imageData.data[pixelIndex + 2];
-              
-              // 简单判断是否为黑色块
-              if (r < 128 && g < 128 && b < 128) {
-                binaryString += '1';
-              } else {
-                binaryString += '0';
-              }
-              
-              x += blockSize;
-              if (x > canvas.width - 20 - blockSize) {
-                x = 20 + 9*blockSize;
-                y += blockSize;
-              }
-              
-              // 跳过定位标记区域
-              if (y >= 20 + 7*blockSize && y <= 20 + 9*blockSize) {
-                y = 20 + 9*blockSize;
-              }
-              if (y >= canvas.height - 9*blockSize) {
-                break;
-              }
-            }
-            
-            // 将二进制数据转换为文本
-            let resultText = '';
-            for (let i = 0; i < binaryString.length; i += 8) {
-              const byte = binaryString.substr(i, 8);
-              if (byte.length === 8) {
-                resultText += String.fromCharCode(parseInt(byte, 2));
-              }
-            }
-            
-            document.getElementById('inputText').value = resultText;
-            document.getElementById('outputText').value = "请使用解密功能处理提取的文本";
-          };
-        };
-        
-        reader.readAsDataURL(imageFile);
-      }
-    });
+    }
   </script>
 </body>
 </html>
