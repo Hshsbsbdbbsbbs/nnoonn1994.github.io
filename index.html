@@ -3,173 +3,266 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TVBOX配置转图片工具 - 支持自定义背景</title>
+  <title>TVBOX加密解密工具</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f5f5f5;
+    :root {
+      --primary-color: #409EFF;
+      --success-color: #67C23A;
+      --warning-color: #E6A23C;
+      --danger-color: #F56C6C;
+      --text-color: #303133;
+      --border-color: #DCDFE6;
+      --bg-color: #F5F7FA;
     }
-    .wrapper {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.5;
+      padding: 20px;
+    }
+    .container {
       max-width: 1200px;
       margin: 0 auto;
-      background-color: white;
-      padding: 20px;
+      background: white;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+      overflow: hidden;
     }
-    h2 {
-      color: #333;
+    .header {
+      padding: 20px;
+      background: linear-gradient(135deg, var(--primary-color), #3375b9);
+      color: white;
       text-align: center;
-      margin-bottom: 20px;
     }
-    .inner {
+    .header h1 {
+      font-size: 24px;
+      font-weight: 500;
+    }
+    .content {
       display: flex;
+      padding: 20px;
       gap: 20px;
     }
-    .textarea-group {
+    .panel {
       flex: 1;
+      display: flex;
+      flex-direction: column;
     }
-    .input-group {
-      width: 300px;
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .textarea-container {
+      flex: 1;
+      position: relative;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
     }
     textarea {
       width: 100%;
-      height: 400px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      height: 100%;
+      padding: 12px;
+      border: none;
       resize: none;
       font-family: monospace;
+      font-size: 14px;
+      outline: none;
     }
-    .form-control {
-      margin-bottom: 15px;
+    .control-panel {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+      font-size: 14px;
+      font-weight: 500;
     }
     input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
       border-radius: 4px;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: #66b1ff;
+    }
+    .btn-success {
+      background-color: var(--success-color);
+      color: white;
+    }
+    .btn-success:hover {
+      background-color: #85ce61;
     }
     .btn-group {
       display: flex;
       gap: 10px;
-      margin-bottom: 15px;
     }
-    button {
-      padding: 8px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .btn-encrypt {
-      background-color: #28a745;
-      color: white;
-    }
-    .btn-decrypt {
-      background-color: #007bff;
-      color: white;
-    }
-    .btn-upload {
-      background-color: #6c757d;
-      color: white;
-    }
-    .btn-download {
-      background-color: #17a2b8;
-      color: white;
-    }
-    .btn-img {
-      background-color: #ffc107;
-      color: black;
+    .btn-block {
+      width: 100%;
     }
     .checkbox-group {
-      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      margin-top: 10px;
+      display: none;
+      border: 1px solid var(--border-color);
       border-radius: 4px;
-      margin-bottom: 15px;
     }
     .file-input {
       display: none;
     }
-    #imagePreview {
-      max-width: 100%;
-      margin-top: 10px;
+    .divider {
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 15px 0;
+    }
+    .status-message {
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
       display: none;
     }
-    #bgImagePreview {
-      max-width: 100%;
-      margin-top: 10px;
-      display: none;
+    .status-success {
+      background-color: #f0f9eb;
+      color: var(--success-color);
     }
-    .option-group {
-      margin-bottom: 15px;
+    .status-error {
+      background-color: #fef0f0;
+      color: var(--danger-color);
     }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <h2>TVBOX配置转图片工具 - 支持自定义背景</h2>
-    <div class="inner">
-      <div class="textarea-group">
-        <textarea id="inputText" placeholder="请输入要转换的配置内容"></textarea>
+  <div class="container">
+    <div class="header">
+      <h1>TVBOX加密解密工具</h1>
+    </div>
+    <div class="content">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">输入内容</span>
+        </div>
+        <div class="textarea-container">
+          <textarea id="inputText" placeholder="请输入要加密/解密的文本内容..."></textarea>
+        </div>
       </div>
-      <div class="input-group">
-        <div class="form-control">
-          <label for="key">KEY/密码（加密时使用）</label>
-          <input type="text" id="key" value="123456" maxlength="16">
-        </div>
-        
-        <div class="form-control">
-          <label for="iv">IV/向量（加密时使用）</label>
-          <input type="text" id="iv" value="" maxlength="13">
-        </div>
-        
-        <div class="option-group">
-          <label>转换方式</label>
-          <select id="convertMethod">
-            <option value="text">文字叠加（直接显示）</option>
-            <option value="qr">生成二维码嵌入</option>
-            <option value="stegano">隐形水印（需解密）</option>
+      
+      <div class="control-panel">
+        <div class="form-group">
+          <label for="operation">操作类型</label>
+          <select id="operation" class="btn btn-block">
+            <option value="encrypt">加密</option>
+            <option value="decrypt">解密</option>
           </select>
         </div>
         
+        <div class="form-group">
+          <label for="key">加密密钥 (KEY)</label>
+          <input type="text" id="key" value="123456" maxlength="16" placeholder="16位字符">
+        </div>
+        
+        <div class="form-group">
+          <label for="iv">初始向量 (IV)</label>
+          <input type="text" id="iv" placeholder="自动生成" maxlength="13">
+        </div>
+        
+        <div class="checkbox-group">
+          <input type="checkbox" id="base64Check">
+          <label for="base64Check">Base64解码</label>
+        </div>
+        
         <div class="btn-group">
-          <button class="btn-upload" id="uploadBgBtn">上传背景图片</button>
+          <button id="uploadBtn" class="btn btn-primary">
+            <span>上传文件</span>
+          </button>
+          <input type="file" id="fileInput" class="file-input">
+        </div>
+        
+        <div class="btn-group">
+          <button id="processBtn" class="btn btn-success btn-block">
+            <span>执行操作</span>
+          </button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="btn-group">
+          <button id="toImgBtn" class="btn btn-primary">
+            <span>生成加密图片</span>
+          </button>
           <input type="file" id="bgImageInput" accept="image/*" class="file-input">
         </div>
         
         <div class="btn-group">
-          <button class="btn-img" id="toImgBtn">生成配置图片</button>
-          <button class="btn-img" id="fromImgBtn">从图片读取配置</button>
+          <button id="fromImgBtn" class="btn btn-success">
+            <span>从图片解密</span>
+          </button>
           <input type="file" id="imgInput" accept="image/*" class="file-input">
         </div>
         
-        <div id="bgPreviewContainer">
-          <p>背景预览：</p>
-          <img id="bgImagePreview" alt="背景图片预览">
-        </div>
+        <div id="statusMessage" class="status-message"></div>
         
-        <div id="resultPreviewContainer">
-          <p>生成结果：</p>
-          <img id="imagePreview" alt="配置图片预览">
+        <img id="imagePreview" class="image-preview" alt="图片预览">
+      </div>
+      
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">输出结果</span>
+          <button id="copyBtn" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">
+            <span>复制</span>
+          </button>
+        </div>
+        <div class="textarea-container">
+          <textarea id="outputText" placeholder="处理结果将显示在这里..." readonly></textarea>
         </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       // 初始化IV为当前时间戳
@@ -177,8 +270,25 @@
       
       let bgImageData = null;
       
+      // 上传文件
+      document.getElementById('uploadBtn').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+      });
+      
+      document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('inputText').value = e.target.result;
+          showStatus('文件加载成功', 'success');
+        };
+        reader.readAsText(file);
+      });
+      
       // 上传背景图片
-      document.getElementById('uploadBgBtn').addEventListener('click', function() {
+      document.getElementById('toImgBtn').addEventListener('click', function() {
         document.getElementById('bgImageInput').click();
       });
       
@@ -189,33 +299,18 @@
         const reader = new FileReader();
         reader.onload = function(e) {
           bgImageData = e.target.result;
-          const imgPreview = document.getElementById('bgImagePreview');
+          const imgPreview = document.getElementById('imagePreview');
           imgPreview.src = bgImageData;
           imgPreview.style.display = 'block';
+          showStatus('背景图片已加载', 'success');
+          
+          // 自动生成加密图片
+          generateSteganoImage(document.getElementById('inputText').value.trim());
         };
         reader.readAsDataURL(file);
       });
       
-      // 生成配置图片
-      document.getElementById('toImgBtn').addEventListener('click', function() {
-        const text = document.getElementById('inputText').value.trim();
-        if (!text) {
-          alert('请输入要转换的配置内容');
-          return;
-        }
-        
-        const method = document.getElementById('convertMethod').value;
-        
-        if (method === 'qr') {
-          generateQRCodeImage(text);
-        } else if (method === 'stegano') {
-          generateSteganoImage(text);
-        } else {
-          generateTextImage(text);
-        }
-      });
-      
-      // 从图片读取配置
+      // 从图片解密
       document.getElementById('fromImgBtn').addEventListener('click', function() {
         document.getElementById('imgInput').click();
       });
@@ -224,130 +319,135 @@
         const file = e.target.files[0];
         if (!file) return;
         
-        const method = document.getElementById('convertMethod').value;
-        
-        if (method === 'qr') {
-          readQRCodeFromImage(file);
-        } else if (method === 'stegano') {
-          readSteganoFromImage(file);
-        } else {
-          readTextFromImage(file);
-        }
+        readSteganoFromImage(file);
       });
       
-      // 生成带文字的图片
-      function generateTextImage(text) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+      // 执行加密/解密操作
+      document.getElementById('processBtn').addEventListener('click', processData);
+      
+      // 复制结果
+      document.getElementById('copyBtn').addEventListener('click', function() {
+        const outputText = document.getElementById('outputText');
+        outputText.select();
+        document.execCommand('copy');
+        showStatus('已复制到剪贴板', 'success');
+      });
+      
+      // 显示状态信息
+      function showStatus(message, type) {
+        const statusElement = document.getElementById('statusMessage');
+        statusElement.textContent = message;
+        statusElement.className = `status-message status-${type}`;
+        statusElement.style.display = 'block';
         
-        // 如果有背景图片，使用背景图片
-        if (bgImageData) {
-          const img = new Image();
-          img.onload = function() {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            drawTextOnCanvas(ctx, canvas.width, canvas.height, text);
-            finalizeImage(canvas);
-          };
-          img.src = bgImageData;
-        } else {
-          // 没有背景图片，创建纯色背景
-          canvas.width = 800;
-          canvas.height = Math.max(600, Math.ceil(text.length / 60) * 30);
-          ctx.fillStyle = '#f8f9fa';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          drawTextOnCanvas(ctx, canvas.width, canvas.height, text);
-          finalizeImage(canvas);
+        setTimeout(() => {
+          statusElement.style.display = 'none';
+        }, 3000);
+      }
+      
+      // AES加密函数
+      function padTo16Byte(str) {
+        return CryptoJS.enc.Utf8.parse(str.toString().padEnd(16, '0'));
+      }
+      
+      function Encrypt(word, keyStr, ivStr) {
+        const key = padTo16Byte(keyStr);
+        const iv = padTo16Byte(ivStr);
+        const encrypted = CryptoJS.AES.encrypt(word, key, { iv });
+        return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+      }
+      
+      function Decrypt(word, keyStr, ivStr) {
+        const key = padTo16Byte(keyStr);
+        const iv = padTo16Byte(ivStr);
+        const ciphertext = CryptoJS.enc.Hex.parse(word);
+        const decrypt = CryptoJS.AES.decrypt({ ciphertext }, key, { iv });
+        return decrypt.toString(CryptoJS.enc.Utf8);
+      }
+      
+      function decryptAesBCB(encryptedData) {
+        var dataArr = encryptedData.split("");
+        var prefixCode = CryptoJS.enc.Utf8.parse("$#").toString();
+        var suffixCode = CryptoJS.enc.Utf8.parse("#$").toString();
+        var pwdMix = dataArr
+          .splice(0, encryptedData.indexOf(suffixCode) + 4)
+          .join("");
+        var roundtimeInHax = dataArr.splice(dataArr.length - 26, 26).join("");
+        var encryptedText = dataArr.join("");
+        var pwdInHax = pwdMix.substring(
+          prefixCode.length,
+          pwdMix.length - suffixCode.length
+        );
+        var roundTime = CryptoJS.enc.Utf8.stringify(
+          CryptoJS.enc.Hex.parse(roundtimeInHax)
+        );
+        var pwd = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Hex.parse(pwdInHax));
+        var iv = CryptoJS.enc.Utf8.parse(roundTime.padEnd(16, "0"));
+        var pkBlocks = CryptoJS.enc.Utf8.parse(pwd.padEnd(16, "0"));
+        var cipherParams = CryptoJS.lib.CipherParams.create({
+          ciphertext: CryptoJS.enc.Hex.parse(encryptedText),
+        });
+        var decryptedData = CryptoJS.enc.Utf8.stringify(
+          CryptoJS.AES.decrypt(cipherParams, pkBlocks, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7,
+          })
+        );
+        return decryptedData;
+      }
+      
+      function convertToHex(value) {
+        return CryptoJS.enc.Hex.stringify(CryptoJS.enc.Utf8.parse(value));
+      }
+      
+      // 处理数据
+      function processData() {
+        const inputText = document.getElementById('inputText').value.trim();
+        const operation = document.getElementById('operation').value;
+        const key = document.getElementById('key').value;
+        const iv = document.getElementById('iv').value;
+        const base64Check = document.getElementById('base64Check').checked;
+        
+        if (!inputText) {
+          showStatus('请输入要处理的文本', 'error');
+          return;
+        }
+        
+        try {
+          let result;
+          
+          if (operation === 'encrypt') {
+            const resultData = Encrypt(inputText, key, iv);
+            const keyHex = convertToHex(`$#${key}#$`);
+            const ivHex = convertToHex(iv);
+            result = `${keyHex}${resultData}${ivHex}`;
+            showStatus('加密成功', 'success');
+          } else {
+            let encryptedData = inputText;
+            if (base64Check) {
+              encryptedData = window.atob(encryptedData.split("**")[1] || encryptedData);
+            }
+            result = decryptAesBCB(encryptedData);
+            showStatus('解密成功', 'success');
+          }
+          
+          document.getElementById('outputText').value = result;
+        } catch (err) {
+          console.error(err);
+          showStatus('处理失败: ' + err.message, 'error');
         }
       }
       
-      // 在画布上绘制文本
-      function drawTextOnCanvas(ctx, width, height, text) {
-        const fontSize = Math.max(12, Math.min(24, width / 50));
-        const lineHeight = fontSize * 1.5;
-        const margin = 30;
-        const maxLineWidth = width - margin * 2;
-        
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.font = `bold ${fontSize}px Arial`;
-        ctx.textBaseline = 'top';
-        
-        // 自动换行
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of text.split(' ')) {
-          const testLine = currentLine ? `${currentLine} ${word}` : word;
-          const metrics = ctx.measureText(testLine);
-          
-          if (metrics.width <= maxLineWidth || !currentLine) {
-            currentLine = testLine;
-          } else {
-            lines.push(currentLine);
-            currentLine = word;
-          }
-        }
-        
-        if (currentLine) lines.push(currentLine);
-        
-        // 绘制文本
-        lines.forEach((line, i) => {
-          const y = margin + i * lineHeight;
-          // 文字阴影效果
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-          ctx.fillText(line, margin + 2, y + 2);
-          ctx.fillStyle = 'white';
-          ctx.fillText(line, margin, y);
-        });
-      }
-      
-      // 生成二维码图片
-      function generateQRCodeImage(text) {
-        const canvas = document.createElement('canvas');
-        
-        // 如果有背景图片，调整二维码大小
-        const size = bgImageData ? 200 : 400;
-        
-        QRCode.toCanvas(canvas, text, { width: size }, function(error) {
-          if (error) {
-            alert('生成二维码失败: ' + error);
-            return;
-          }
-          
-          if (bgImageData) {
-            // 把二维码放到背景图片上
-            const compositeCanvas = document.createElement('canvas');
-            const ctx = compositeCanvas.getContext('2d');
-            
-            const bgImg = new Image();
-            bgImg.onload = function() {
-              compositeCanvas.width = bgImg.width;
-              compositeCanvas.height = bgImg.height;
-              ctx.drawImage(bgImg, 0, 0);
-              
-              // 把二维码放在右下角
-              const qrX = bgImg.width - size - 20;
-              const qrY = bgImg.height - size - 20;
-              
-              // 半透明背景
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-              ctx.fillRect(qrX - 10, qrY - 10, size + 20, size + 20);
-              
-              ctx.drawImage(canvas, qrX, qrY);
-              finalizeImage(compositeCanvas);
-            };
-            bgImg.src = bgImageData;
-          } else {
-            finalizeImage(canvas);
-          }
-        });
-      }
-      
-      // 生成隐形水印图片（简单版）
+      // 生成隐形水印图片
       function generateSteganoImage(text) {
+        if (!text) {
+          showStatus('请输入要隐藏的文本', 'error');
+          return;
+        }
+        
         if (!bgImageData) {
-          alert('隐形水印需要背景图片');
+          showStatus('请先上传背景图片', 'error');
           return;
         }
         
@@ -360,10 +460,13 @@
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
           
+          // 加密文本
+          const encryptedText = Encrypt(text, document.getElementById('key').value, document.getElementById('iv').value);
+          
           // 简单的水印算法：修改LSB（最低有效位）
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const data = imageData.data;
-          const textBits = stringToBits(text);
+          const textBits = stringToBits(encryptedText);
           let bitIndex = 0;
           
           for (let i = 0; i < data.length; i += 4) {
@@ -383,46 +486,12 @@
           
           ctx.putImageData(imageData, 0, 0);
           finalizeImage(canvas);
+          showStatus('加密图片生成成功', 'success');
         };
         img.src = bgImageData;
       }
       
-      // 从图片读取文本
-      function readTextFromImage(file) {
-        alert('从图片读取文本功能需要OCR支持，请使用二维码或隐形水印方式');
-      }
-      
-      // 从二维码读取配置
-      function readQRCodeFromImage(file) {
-        const img = new Image();
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-          img.src = e.target.result;
-          
-          img.onload = function() {
-            // 使用QRCode.js解码
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            
-            // 简化版：实际应该使用更健壮的二维码解码库
-            try {
-              const result = QRCode.decodeFromImage(img);
-              document.getElementById('inputText').value = result;
-              alert('成功读取二维码内容');
-            } catch (err) {
-              alert('无法识别二维码: ' + err.message);
-            }
-          };
-        };
-        
-        reader.readAsDataURL(file);
-      }
-      
-      // 从隐形水印读取配置
+      // 从图片读取隐形水印
       function readSteganoFromImage(file) {
         const img = new Image();
         const reader = new FileReader();
@@ -448,8 +517,21 @@
               }
             }
             
-            const text = bitsToString(bits);
-            document.getElementById('inputText').value = text;
+            const encryptedText = bitsToString(bits);
+            
+            // 尝试解密
+            try {
+              const key = document.getElementById('key').value;
+              const iv = document.getElementById('iv').value;
+              const decryptedText = Decrypt(encryptedText, key, iv);
+              
+              document.getElementById('inputText').value = encryptedText;
+              document.getElementById('outputText').value = decryptedText;
+              showStatus('从图片解密成功', 'success');
+            } catch (err) {
+              document.getElementById('inputText').value = "无法解密，请检查密钥是否正确";
+              showStatus('解密失败: ' + err.message, 'error');
+            }
           };
         };
         
@@ -466,7 +548,7 @@
         // 提供下载
         const link = document.createElement('a');
         link.href = dataUrl;
-        link.download = 'tvbox_config.png';
+        link.download = 'tvbox_encrypted.png';
         link.click();
       }
       
