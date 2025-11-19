@@ -189,6 +189,7 @@
         .highlight {
             background-color: var(--highlight-bg);
             color: var(--text-color);
+            padding: 2px 0;
         }
 
         .modal {
@@ -238,17 +239,6 @@
             background: none;
             border: 1px solid var(--border-color);
             color: var(--text-color);
-        }
-
-        .custom-format {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .custom-format-input {
-            width: 80px;
-            min-height: 32px;
         }
 
         /* 语法高亮样式 */
@@ -342,13 +332,6 @@
                 <button id="findBtn">查找</button>
                 <button id="replaceBtn">替换</button>
             </div>
-            <div class="toolbar-group">
-                <div class="custom-format">
-                    <span>自定义格式:</span>
-                    <input type="text" id="customFormatInput" class="custom-format-input" placeholder="例如: py, java" value="txt">
-                    <button id="setCustomFormat">设置</button>
-                </div>
-            </div>
         </div>
 
         <div class="editor-wrapper">
@@ -358,7 +341,7 @@
         <div class="status-bar">
             <span id="charCount">字符数: 0</span>
             <span id="lineCount">行数: 1</span>
-            <span id="fileTypeDisplay">文件格式: txt</span>
+            <span id="fileTypeDisplay">文件格式: TXT</span>
             <span id="cursorPosition">行: 1, 列: 1</span>
         </div>
     </div>
@@ -425,8 +408,6 @@
             const redoBtn = document.getElementById('redoBtn');
             const findBtn = document.getElementById('findBtn');
             const replaceBtn = document.getElementById('replaceBtn');
-            const customFormatInput = document.getElementById('customFormatInput');
-            const setCustomFormatBtn = document.getElementById('setCustomFormat');
             const charCount = document.getElementById('charCount');
             const lineCount = document.getElementById('lineCount');
             const fileTypeDisplay = document.getElementById('fileTypeDisplay');
@@ -456,30 +437,7 @@
             let autocompleteItems = [];
             let autocompleteIndex = -1;
             let currentFileName = 'untitled';
-            let customFileExtension = 'txt';
-            
-            // 文件类型到MIME类型的映射
-            const mimeTypeMap = {
-                'txt': 'text/plain',
-                'html': 'text/html',
-                'htm': 'text/html',
-                'css': 'text/css',
-                'js': 'application/javascript',
-                'json': 'application/json',
-                'xml': 'application/xml',
-                'csv': 'text/csv',
-                'md': 'text/markdown',
-                'py': 'text/x-python',
-                'java': 'text/x-java',
-                'cpp': 'text/x-c++src',
-                'c': 'text/x-csrc',
-                'php': 'application/x-httpd-php',
-                'rb': 'text/x-ruby',
-                'sh': 'application/x-sh',
-                'sql': 'application/sql',
-                'yaml': 'application/x-yaml',
-                'yml': 'application/x-yaml'
-            };
+            let isFinding = false; // 新增：标记是否正在查找
             
             // Safari兼容性修复 - 确保输入框可点击
             function fixSafariInputIssues() {
@@ -534,7 +492,9 @@
                 // 监听输入事件
                 editor.addEventListener('input', function() {
                     updateStatus();
-                    applySyntaxHighlighting();
+                    if (!isFinding) {
+                        applySyntaxHighlighting();
+                    }
                     addToHistory();
                     
                     // 显示自动补全
@@ -588,7 +548,7 @@
                 
                 charCount.textContent = `字符数: ${charCountValue}`;
                 lineCount.textContent = `行数: ${lineCountValue}`;
-                fileTypeDisplay.textContent = `文件格式: ${customFileExtension}`;
+                fileTypeDisplay.textContent = `文件格式: TXT`;
             }
             
             // 更新光标位置
@@ -611,6 +571,8 @@
             
             // 语法高亮
             function applySyntaxHighlighting() {
+                if (isFinding) return; // 如果正在查找，不应用语法高亮
+                
                 const text = editor.innerText;
                 const highlightedText = highlightPlainText(text);
                 
@@ -709,11 +671,6 @@
                         editor.innerText = content;
                         currentFileName = file.name.replace(/\.[^/.]+$/, ""); // 移除扩展名
                         
-                        // 根据文件扩展名设置自定义格式
-                        const extension = file.name.split('.').pop().toLowerCase();
-                        customFileExtension = extension;
-                        customFormatInput.value = extension;
-                        
                         updateStatus();
                         applySyntaxHighlighting();
                         addToHistory();
@@ -727,22 +684,19 @@
             // 保存文件到本地
             function saveFileToLocal() {
                 const content = editor.innerText;
-                const extension = customFileExtension;
-                
-                // 根据文件扩展名获取对应的MIME类型，默认为text/plain
-                const mimeType = mimeTypeMap[extension] || 'text/plain';
+                const mimeType = 'text/plain';
                 
                 const blob = new Blob([content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${currentFileName}.${extension}`;
+                a.download = `${currentFileName}.txt`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                alert(`文件已保存为 ${currentFileName}.${extension}`);
+                alert(`文件已保存为 ${currentFileName}.txt`);
             }
             
             // 复制全部文本
@@ -794,7 +748,8 @@
                 while ((match = regex.exec(text)) !== null) {
                     findResults.push({
                         start: match.index,
-                        end: match.index + match[0].length
+                        end: match.index + match[0].length,
+                        text: match[0]
                     });
                 }
                 
@@ -820,6 +775,8 @@
             function highlightCurrentFind() {
                 if (currentFindIndex < 0 || currentFindIndex >= findResults.length) return;
                 
+                isFinding = true; // 标记正在查找
+                
                 const result = findResults[currentFindIndex];
                 const text = editor.innerText;
                 
@@ -831,11 +788,18 @@
                 editor.innerHTML = before + '<span class="highlight">' + match + '</span>' + after;
                 
                 // 更新状态显示
-                document.querySelector('.modal-footer').innerHTML += 
-                    `<span style="margin-left: 10px;">${currentFindIndex + 1}/${findResults.length}</span>`;
+                const modalFooter = document.querySelector('#findModal .modal-footer');
+                // 清除之前的状态显示
+                const statusSpan = modalFooter.querySelector('.find-status');
+                if (statusSpan) {
+                    statusSpan.remove();
+                }
+                // 添加新的状态显示
+                modalFooter.innerHTML += `<span class="find-status" style="margin-left: 10px;">${currentFindIndex + 1}/${findResults.length}</span>`;
             }
             
             function clearHighlights() {
+                isFinding = false; // 标记查找结束
                 applySyntaxHighlighting();
                 currentFindIndex = -1;
                 findResults = [];
@@ -847,6 +811,13 @@
                 const highlight = editor.querySelector('.highlight');
                 if (highlight) {
                     highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // 选中高亮文本
+                    const range = document.createRange();
+                    range.selectNodeContents(highlight);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
                 }
             }
             
@@ -1086,18 +1057,6 @@
                 applySyntaxHighlighting();
             }
             
-            // 自定义文件格式处理
-            function setCustomFormat() {
-                const format = customFormatInput.value.trim();
-                if (format) {
-                    customFileExtension = format;
-                    updateStatus();
-                    alert(`自定义文件格式已设置为: ${format}`);
-                } else {
-                    alert('请输入有效的文件格式');
-                }
-            }
-            
             // 事件监听器
             themeToggle.addEventListener('click', toggleTheme);
             newFileBtn.addEventListener('click', newFile);
@@ -1108,7 +1067,6 @@
             redoBtn.addEventListener('click', redo);
             findBtn.addEventListener('click', openFindModal);
             replaceBtn.addEventListener('click', openReplaceModal);
-            setCustomFormatBtn.addEventListener('click', setCustomFormat);
             
             // 查找模态框事件
             findNextBtn.addEventListener('click', () => findText('next'));
