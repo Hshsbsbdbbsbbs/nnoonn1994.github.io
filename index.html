@@ -458,6 +458,29 @@
             let currentFileName = 'untitled';
             let customFileExtension = 'txt';
             
+            // 文件类型到MIME类型的映射
+            const mimeTypeMap = {
+                'txt': 'text/plain',
+                'html': 'text/html',
+                'htm': 'text/html',
+                'css': 'text/css',
+                'js': 'application/javascript',
+                'json': 'application/json',
+                'xml': 'application/xml',
+                'csv': 'text/csv',
+                'md': 'text/markdown',
+                'py': 'text/x-python',
+                'java': 'text/x-java',
+                'cpp': 'text/x-c++src',
+                'c': 'text/x-csrc',
+                'php': 'application/x-httpd-php',
+                'rb': 'text/x-ruby',
+                'sh': 'application/x-sh',
+                'sql': 'application/sql',
+                'yaml': 'application/x-yaml',
+                'yml': 'application/x-yaml'
+            };
+            
             // Safari兼容性修复 - 确保输入框可点击
             function fixSafariInputIssues() {
                 // 为所有输入框添加touch事件处理
@@ -705,7 +728,9 @@
             function saveFileToLocal() {
                 const content = editor.innerText;
                 const extension = customFileExtension;
-                const mimeType = 'text/plain'; // 默认MIME类型
+                
+                // 根据文件扩展名获取对应的MIME类型，默认为text/plain
+                const mimeType = mimeTypeMap[extension] || 'text/plain';
                 
                 const blob = new Blob([content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
