@@ -17,8 +17,6 @@
             --autocomplete-bg: #fff;
             --autocomplete-border: #ccc;
             --autocomplete-hover: #f0f0f0;
-            --line-number-bg: #f8f9fa;
-            --line-number-color: #6c757d;
         }
 
         .dark-theme {
@@ -33,8 +31,6 @@
             --autocomplete-bg: #2c3e50;
             --autocomplete-border: #7f8c8d;
             --autocomplete-hover: #34495e;
-            --line-number-bg: #2c3e50;
-            --line-number-color: #8b949e;
         }
 
         * {
@@ -96,6 +92,7 @@
         .toolbar-group {
             display: flex;
             gap: 5px;
+            align-items: center;
         }
 
         button {
@@ -131,8 +128,18 @@
             background-color: var(--editor-bg);
             color: var(--text-color);
             font-size: 0.85rem;
-            -webkit-user-select: none;
-            user-select: none;
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        /* Safari兼容性修复 */
+        input[type="text"] {
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-touch-callout: default;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
 
         .search-box {
@@ -241,6 +248,7 @@
 
         .custom-format-input {
             width: 80px;
+            min-height: 32px;
         }
 
         /* 语法高亮样式 */
@@ -335,9 +343,6 @@
                 <button id="replaceBtn">替换</button>
             </div>
             <div class="toolbar-group">
-                <button id="commentLines">注释选中行</button>
-            </div>
-            <div class="toolbar-group">
                 <div class="custom-format">
                     <span>自定义格式:</span>
                     <input type="text" id="customFormatInput" class="custom-format-input" placeholder="例如: py, java" value="txt">
@@ -420,7 +425,6 @@
             const redoBtn = document.getElementById('redoBtn');
             const findBtn = document.getElementById('findBtn');
             const replaceBtn = document.getElementById('replaceBtn');
-            const commentLinesBtn = document.getElementById('commentLines');
             const customFormatInput = document.getElementById('customFormatInput');
             const setCustomFormatBtn = document.getElementById('setCustomFormat');
             const charCount = document.getElementById('charCount');
@@ -454,6 +458,31 @@
             let currentFileName = 'untitled';
             let customFileExtension = 'txt';
             
+            // Safari兼容性修复 - 确保输入框可点击
+            function fixSafariInputIssues() {
+                // 为所有输入框添加touch事件处理
+                const inputs = document.querySelectorAll('input[type="text"]');
+                inputs.forEach(input => {
+                    // 防止双击缩放
+                    input.addEventListener('touchstart', function(e) {
+                        if (e.touches.length > 1) {
+                            e.preventDefault();
+                        }
+                    }, { passive: false });
+                    
+                    // 确保输入框可以获得焦点
+                    input.addEventListener('touchend', function(e) {
+                        this.focus();
+                        e.preventDefault();
+                    }, { passive: false });
+                    
+                    // 修复Safari中输入框的点击问题
+                    input.addEventListener('click', function(e) {
+                        this.focus();
+                    });
+                });
+            }
+            
             // 防止页面缩放
             document.addEventListener('touchstart', function(e) {
                 if (e.touches.length > 1) {
@@ -477,6 +506,7 @@
             function initEditor() {
                 updateStatus();
                 applySyntaxHighlighting();
+                fixSafariInputIssues(); // 修复Safari输入问题
                 
                 // 监听输入事件
                 editor.addEventListener('input', function() {
@@ -868,36 +898,6 @@
                 }
             }
             
-            // 注释功能
-            function commentSelectedLines() {
-                const selection = window.getSelection();
-                if (selection.rangeCount === 0) return;
-                
-                const range = selection.getRangeAt(0);
-                const selectedText = range.toString();
-                
-                if (!selectedText) return;
-                
-                const lines = selectedText.split('\n');
-                const commentedLines = lines.map(line => {
-                    // 根据文件扩展名选择注释符号
-                    if (['py', 'rb', 'sh', 'yaml', 'yml'].includes(customFileExtension)) {
-                        return '# ' + line;
-                    } else {
-                        return '// ' + line;
-                    }
-                });
-                
-                const commentedText = commentedLines.join('\n');
-                
-                // 替换选中的文本
-                range.deleteContents();
-                range.insertNode(document.createTextNode(commentedText));
-                
-                applySyntaxHighlighting();
-                addToHistory();
-            }
-            
             // 自动补全功能
             function showAutocomplete() {
                 const selection = window.getSelection();
@@ -1083,7 +1083,6 @@
             redoBtn.addEventListener('click', redo);
             findBtn.addEventListener('click', openFindModal);
             replaceBtn.addEventListener('click', openReplaceModal);
-            commentLinesBtn.addEventListener('click', commentSelectedLines);
             setCustomFormatBtn.addEventListener('click', setCustomFormat);
             
             // 查找模态框事件
